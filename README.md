@@ -14,7 +14,7 @@ This program allows to set up such a time control with such sequences, and you c
 
 Running this program requires a Java Runtime Environment.
 Copy the chessclock-<version number>.jar and the chessClockWork-<version number>.jar into the same directoy an go into this directory. Type
-  ```java -p . -m chessclock'''
+  ```java -p . -m chessclock```
 and hit enter. If the directory with the java executable is not in your PATH, you have to enter the full path to the java executable.
 
 # Project structure and licencing
