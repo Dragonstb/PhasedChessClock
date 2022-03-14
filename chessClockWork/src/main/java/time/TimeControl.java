@@ -80,7 +80,9 @@ public final class TimeControl {
         /** A game is running currently. */
         running,
         /** A running game is currently paused. */
-        paused
+        paused,
+        /** The game is in the first move where the time does not run. */
+        firstMove
     }
 
     /** Current state. */
@@ -104,6 +106,8 @@ public final class TimeControl {
     private PlayerTimeControl currentPTC;
     /** The clock display that is responsible for displaying the times. */
     private final ClockDisplay clockDisplay;
+    /** Does the time run during the first move? */
+    private boolean timeRunsInFirstMove = false;
 
     /** Generates.
      *
@@ -151,8 +155,11 @@ public final class TimeControl {
      * @param dataLeft Left player's data.
      * @param dataRight Right player's data.
      * @param leftIsWhite Does the left player plays with the white pieces?
+     * @param timeRunsInFirstMove The time is ticking down also in the first move if and only if this
+     * parameter is set to {@code true}.
      */
-    public void setupNewGameTiming(TimeBudgetConstraint dataLeft, TimeBudgetConstraint dataRight, boolean leftIsWhite) {
+    public void setupNewGameTiming(TimeBudgetConstraint dataLeft, TimeBudgetConstraint dataRight, boolean leftIsWhite,
+            boolean timeRunsInFirstMove) {
         if (dataLeft == null || dataRight == null) {
             return;
         }
@@ -170,6 +177,18 @@ public final class TimeControl {
         currentPTC = leftIsWhite ? timeControlLeft : timeControlRight;
 
         clockDisplay.setMoveNumber(-1);
+    }
+
+    /** Sets all data for a new game and tells all displays what they need to know now. During
+     * the first move, the time does <b>not</b> run.
+     *
+     * @since 1.0;
+     * @param dataLeft Left player's data.
+     * @param dataRight Right player's data.
+     * @param leftIsWhite Does the left player plays with the white pieces?
+     */
+    public void setupNewGameTiming(TimeBudgetConstraint dataLeft, TimeBudgetConstraint dataRight, boolean leftIsWhite) {
+        setupNewGameTiming(dataLeft, dataRight, leftIsWhite, false);
     }
 
     /** Called when a move is done. Invoking this method is the digital equivalent of pressing the
