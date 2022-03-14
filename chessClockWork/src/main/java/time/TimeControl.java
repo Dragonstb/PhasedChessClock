@@ -106,8 +106,6 @@ public final class TimeControl {
     private PlayerTimeControl currentPTC;
     /** The clock display that is responsible for displaying the times. */
     private final ClockDisplay clockDisplay;
-    /** Does the time run during the first move? */
-    private boolean timeRunsInFirstMove = false;
 
     /** Generates.
      *
@@ -168,7 +166,6 @@ public final class TimeControl {
         halfMove = INI_HALF_MOVE;
         clockDisplay.setPausedState(false);
 
-        currentState = State.noneRunning;
         leftAtTurn = leftIsWhite;
         signalClock.flagHoldOn();
 
@@ -176,7 +173,16 @@ public final class TimeControl {
         timeControlRight.setupGameTiming(dataRight);
         currentPTC = leftIsWhite ? timeControlLeft : timeControlRight;
 
-        clockDisplay.setMoveNumber(-1);
+        if(timeRunsInFirstMove){
+            clockDisplay.setMoveNumber(-1);
+            currentState = State.noneRunning;
+        }
+        else{
+            clockDisplay.setMoveNumber( getMoveNumber() );
+            currentState = State.firstMove;
+            currentPTC.setActiveAndRepaint( true );
+        }
+
     }
 
     /** Sets all data for a new game and tells all displays what they need to know now. During
@@ -198,14 +204,27 @@ public final class TimeControl {
      * @since 1.0;
      */
     public void notifyMoveDone() {
-        if (currentState == State.running) {
-            switchActivePlayer = !switchActivePlayer;
-        } else if (currentState == State.noneRunning) {
-            // start game
-            currentPTC.setActiveAndRepaint(true);
-            clockDisplay.setMoveNumber(halfMove / 2);
-            signalClock.callAwakening();
-            currentState = State.running;
+        switch (currentState) {
+            case running -> switchActivePlayer = !switchActivePlayer;
+            case noneRunning -> {
+                // start game
+                currentPTC.setActiveAndRepaint(true);
+                clockDisplay.setMoveNumber( getMoveNumber() );
+                signalClock.callAwakening();
+                currentState = State.running;
+            }
+            case firstMove -> {
+                // hold back the clock during first move
+                updateFirstMove();
+                if(halfMove == INI_HALF_MOVE + 2){
+                    // we have arrived at second move now
+                    signalClock.callAwakening();
+                    currentState = State.running;
+                }
+            }
+            default -> {
+                // do nothing
+            }
         }
     }
 
@@ -224,6 +243,7 @@ public final class TimeControl {
             clockDisplay.setPausedState(false);
             signalClock.callAwakening();
         }
+        // in case of State.firstMove, nothing happens, as clock is not running anyway
     }
 
     /** The timing method. It removes {@code dt} nanoseconds from the time budget of the current
@@ -255,6 +275,20 @@ public final class TimeControl {
         }
     }
 
+    /** Updates the counters during the first move when the time is <i>not</i> running.
+     * @since 1.0;
+     */
+    private void updateFirstMove() {
+        leftAtTurn = !leftAtTurn;
+
+        currentPTC.endMoveAndRepaint();
+        currentPTC = leftAtTurn ? timeControlLeft : timeControlRight;
+        currentPTC.setActiveAndRepaint(true);
+
+        halfMove++;
+        clockDisplay.setMoveNumber( getMoveNumber() );
+    }
+
     /** Notify the clock display that the clock has been stopped.
      * @since 1.0;
      */
@@ -283,6 +317,14 @@ public final class TimeControl {
      */
     public void startClock() {
         signalClock.start();
+    }
+
+    /** Derives the number of the current move from the counter {@code halfMove}.
+     * @since 1.0;
+     * @return The number of the current move.
+     */
+    private int getMoveNumber() {
+        return halfMove / 2;
     }
 
 }

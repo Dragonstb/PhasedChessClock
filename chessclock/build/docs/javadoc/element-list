@@ -1,7 +1,0 @@
-module:chessclock
-chessclock
-chessclock.about
-chessclock.clockpanel
-chessclock.gamesettings
-chessclock.settingspanel
-localization
