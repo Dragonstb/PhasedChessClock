@@ -49,6 +49,7 @@ import java.lang.reflect.Field;
 
 
 import additionalTesting.MockClockDisplay;
+import additionalTesting.MockDisplay;
 import additionalTesting.TestUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -165,7 +166,7 @@ public class TimeControlTest {
         try {
             currentStateField.set(timeControl, TimeControl.State.running);
         } catch (Exception e1) {
-            fail("Couls not set field currentState");
+            fail("Could not set field currentState");
             return;
         }
 
@@ -266,6 +267,74 @@ public class TimeControlTest {
         assertEquals(wannaSwitch, switchActivePlayer, "Changed switch flag");
         assertEquals(TimeControl.State.paused, currentState, "State is not paused anymore");
         assertEquals(moveNo, display.getMoveNumber(), "Not the right move number");
+    }
+
+    @Test
+    public void testNotifyMoveDone4() {
+        if (fail != null) {
+            fail(fail);
+            return;
+        }
+
+//        try {
+//            currentStateField.set(timeControl, TimeControl.State.firstMove);
+//        } catch (Exception e1) {
+//            fail("Could not set field currentState");
+//            return;
+//        }
+
+        TimeControlPhase tcp1 = TimeControlPhase.makeNew(TimeControlPhase.REMAINDER, 100, 10);
+        TimeControlPhase tcp2 = TimeControlPhase.makeNew(tcp1).get();
+        long moveTimeLimit = -1;
+        boolean additive = false;
+        long warningThreshold = 600;
+
+        TimeBudgetConstraint tbc1 = TimeBudgetConstraint
+                .makeNew(new TimeControlPhase[]{tcp1}, moveTimeLimit, warningThreshold, additive).get();
+        TimeBudgetConstraint tbc2 = TimeBudgetConstraint
+                .makeNew(new TimeControlPhase[]{tcp2}, moveTimeLimit, warningThreshold, additive).get();
+
+        boolean leftIsWhite = true;
+        boolean timeRunsInFirstMove = false;
+        timeControl.setupNewGameTiming(tbc1, tbc2, leftIsWhite, timeRunsInFirstMove);
+
+        boolean wannaSwitch = false;
+        try {
+            switchActivePlayerField.set(timeControl, wannaSwitch);
+        } catch (Exception e) {
+            fail("Could not set field switchActivePlayer");
+            return;
+        }
+
+        display.setMoveNumber(100); // should be set to unity by the call of notifyMoveDone()
+
+        // first half move
+        timeControl.notifyMoveDone();
+
+        try {
+            currentStateRead();
+            switchActivePlayerRead();
+        } catch (Exception e) {
+            fail("Could not read fields");
+        }
+
+        assertEquals(wannaSwitch, switchActivePlayer, "Changed switch flag");
+        assertEquals(TimeControl.State.firstMove, currentState, "Left first move too early");
+        assertEquals(1, display.getMoveNumber(), "Not the right move number");
+
+        // second half move
+        timeControl.notifyMoveDone();
+
+        try {
+            currentStateRead();
+            switchActivePlayerRead();
+        } catch (Exception e) {
+            fail("Could not read fields");
+        }
+
+        assertEquals(wannaSwitch, switchActivePlayer, "Changed switch flag");
+        assertEquals(TimeControl.State.running, currentState, "Not in running state");
+        assertEquals(2, display.getMoveNumber(), "Not the right move number");
     }
 
     @Test
@@ -520,9 +589,219 @@ public class TimeControlTest {
         assertEquals(leftIsWhite, leftAtTurn, "Left-at-turn is wrong");
     }
 
+    /** Update in first move when the time is not running here.
+     *
+     * @since 1.0;
+     */
+    @Test
+    public void testUpdate4() {
+        if (fail != null) {
+            fail(fail);
+            return;
+        }
+
+        boolean leftIsWhite = true;
+        TimeControlPhase tcp1 = TimeControlPhase.makeNew(TimeControlPhase.REMAINDER, 100, 10);
+        TimeControlPhase tcp2 = TimeControlPhase.makeNew(tcp1).get();
+        long moveTimeLimit = -1;
+        boolean additive = false;
+        long warningThreshold = 600;
+
+        TimeBudgetConstraint tbc1 = TimeBudgetConstraint
+                .makeNew(new TimeControlPhase[]{tcp1}, moveTimeLimit, warningThreshold, additive).get();
+        TimeBudgetConstraint tbc2 = TimeBudgetConstraint
+                .makeNew(new TimeControlPhase[]{tcp2}, moveTimeLimit, warningThreshold, additive).get();
+
+        MockDisplay playerDisplayLeft = new MockDisplay();
+        timeControl.setPlayerTimeDisplay(0, playerDisplayLeft);
+
+        // don't need the method with additional boolean here, as this method we use sets this boolean to false
+        timeControl.setupNewGameTiming(tbc1, tbc2, leftIsWhite);
+        try {
+            currentStateField.set(timeControl, TimeControl.State.firstMove);
+            switchActivePlayerField.set(timeControl, false);
+        } catch (Exception e1) {
+            fail("Could not set fields");
+            return;
+        }
+
+        long dt = 100; // nanosecs
+
+        // first half move
+        timeControl.update(dt);
+
+        try {
+            timeHasRanOutRead();
+            currentPTCRead();
+            timeControlLeftRead();
+            timeControlRightRead();
+            halfMoveRead();
+            switchActivePlayerRead();
+            leftAtTurnRead();
+
+        } catch (Exception e) {
+            fail("Could not read fields");
+        }
+
+        assertEquals(tcp1.getTime() * Constants.NANOSEC_PER_SEC, playerDisplayLeft.getClockTime(),
+                "Wrong number of nanoseconds on the clock");
+        assertFalse(timeHasRanOut, "Time is flagged as out");
+        assertEquals(timeControlLeft, currentPTC, "Not the right time control is active");
+        assertEquals(halfMove, this.halfMove, "Not the right number of half moves");
+        assertFalse(switchActivePlayer, "Switch-active-player flag set");
+        assertEquals(leftIsWhite, leftAtTurn, "Left-at-turn is wrong");
+    }
+
+    /** Update in first move when the time <i>is</i> running here.
+     *
+     * @since 1.0;
+     */
+    @Test
+    public void testUpdate5() {
+        if (fail != null) {
+            fail(fail);
+            return;
+        }
+
+        boolean leftIsWhite = true;
+        TimeControlPhase tcp1 = TimeControlPhase.makeNew(TimeControlPhase.REMAINDER, 100, 10);
+        TimeControlPhase tcp2 = TimeControlPhase.makeNew(tcp1).get();
+        long moveTimeLimit = -1;
+        boolean additive = false;
+        long warningThreshold = 600;
+
+        TimeBudgetConstraint tbc1 = TimeBudgetConstraint
+                .makeNew(new TimeControlPhase[]{tcp1}, moveTimeLimit, warningThreshold, additive).get();
+        TimeBudgetConstraint tbc2 = TimeBudgetConstraint
+                .makeNew(new TimeControlPhase[]{tcp2}, moveTimeLimit, warningThreshold, additive).get();
+
+        MockDisplay playerDisplayLeft = new MockDisplay();
+        timeControl.setPlayerTimeDisplay(0, playerDisplayLeft);
+
+        // don't need the method with additional boolean here, as this method we use sets this boolean to false
+        timeControl.setupNewGameTiming(tbc1, tbc2, leftIsWhite);
+        try {
+            currentStateField.set(timeControl, TimeControl.State.running);
+            switchActivePlayerField.set(timeControl, false);
+        } catch (Exception e1) {
+            fail("Could not set fields");
+            return;
+        }
+
+        long dt = 100; // nanosecs
+        long expect = tcp1.getTime() * Constants.NANOSEC_PER_SEC - dt;
+
+        // first half move
+        timeControl.update(dt);
+
+        try {
+            timeHasRanOutRead();
+            currentPTCRead();
+            timeControlLeftRead();
+            timeControlRightRead();
+            halfMoveRead();
+            switchActivePlayerRead();
+            leftAtTurnRead();
+
+        } catch (Exception e) {
+            fail("Could not read fields");
+        }
+
+        assertEquals(expect, playerDisplayLeft.getClockTime(),
+                "Wrong number of nanoseconds on the clock");
+        assertFalse(timeHasRanOut, "Time is flagged as out");
+        assertEquals(timeControlLeft, currentPTC, "Not the right time control is active");
+        assertEquals(halfMove, this.halfMove, "Not the right number of half moves");
+        assertFalse(switchActivePlayer, "Switch-active-player flag set");
+        assertEquals(leftIsWhite, leftAtTurn, "Left-at-turn is wrong");
+    }
+
     @Test
     public void testNotifyStoppingClock() {
         timeControl.notifyStoppingClock();
         assertTrue(display.isStopped(), "Has not been notified");
     }
+
+    /** Test when the time <i>is</i> running in first move.
+     * @since 1.0
+     */
+    @Test
+    public void testSetupNewGameTiming1() {
+        boolean leftIsWhite = true;
+        TimeControlPhase tcp1 = TimeControlPhase.makeNew(TimeControlPhase.REMAINDER, 100, 10);
+        TimeControlPhase tcp2 = TimeControlPhase.makeNew(tcp1).get();
+        long moveTimeLimit = -1;
+        boolean additive = false;
+        long warningThreshold = 600;
+
+        TimeBudgetConstraint tbc1 = TimeBudgetConstraint
+                .makeNew(new TimeControlPhase[]{tcp1}, moveTimeLimit, warningThreshold, additive).get();
+        TimeBudgetConstraint tbc2 = TimeBudgetConstraint
+                .makeNew(new TimeControlPhase[]{tcp2}, moveTimeLimit, warningThreshold, additive).get();
+
+        boolean timeRunsInFirstMove = true; // difference to test 2
+        timeControl.setupNewGameTiming(tbc1, tbc2, leftIsWhite, timeRunsInFirstMove);
+
+        try {
+            timeHasRanOutRead();
+            currentPTCRead();
+            timeControlLeftRead();
+            timeControlRightRead();
+            halfMoveRead();
+            switchActivePlayerRead();
+            leftAtTurnRead();
+            currentStateRead();
+        } catch (Exception e) {
+            fail("Could not read fields");
+        }
+
+        assertEquals(TimeControl.State.noneRunning, currentState, "Not in state noneRunning");
+        assertFalse(timeHasRanOut, "Time is flagged as out");
+        assertEquals(timeControlLeft, currentPTC, "Not the right time control is active");
+        assertEquals(2, this.halfMove, "Not the right number of half moves");
+        assertFalse(switchActivePlayer, "Switch-active-player flag set");
+        assertEquals(leftIsWhite, leftAtTurn, "Left-at-turn is wrong");
+    }
+
+    /** Test when the time <i>is not</i> running in first move.
+     * @since 1.0
+     */
+    @Test
+    public void testSetupNewGameTiming2() {
+        boolean leftIsWhite = true;
+        TimeControlPhase tcp1 = TimeControlPhase.makeNew(TimeControlPhase.REMAINDER, 100, 10);
+        TimeControlPhase tcp2 = TimeControlPhase.makeNew(tcp1).get();
+        long moveTimeLimit = -1;
+        boolean additive = false;
+        long warningThreshold = 600;
+
+        TimeBudgetConstraint tbc1 = TimeBudgetConstraint
+                .makeNew(new TimeControlPhase[]{tcp1}, moveTimeLimit, warningThreshold, additive).get();
+        TimeBudgetConstraint tbc2 = TimeBudgetConstraint
+                .makeNew(new TimeControlPhase[]{tcp2}, moveTimeLimit, warningThreshold, additive).get();
+
+        boolean timeRunsInFirstMove = false; // difference to test 1
+        timeControl.setupNewGameTiming(tbc1, tbc2, leftIsWhite, timeRunsInFirstMove);
+
+        try {
+            timeHasRanOutRead();
+            currentPTCRead();
+            timeControlLeftRead();
+            timeControlRightRead();
+            halfMoveRead();
+            switchActivePlayerRead();
+            leftAtTurnRead();
+            currentStateRead();
+        } catch (Exception e) {
+            fail("Could not read fields");
+        }
+
+        assertEquals(TimeControl.State.firstMove, currentState, "Wrong state");
+        assertFalse(timeHasRanOut, "Time is flagged as out");
+        assertEquals(timeControlLeft, currentPTC, "Not the right time control is active");
+        assertEquals(2, this.halfMove, "Not the right number of half moves");
+        assertFalse(switchActivePlayer, "Switch-active-player flag set");
+        assertEquals(leftIsWhite, leftAtTurn, "Left-at-turn is wrong");
+    }
+
 }
