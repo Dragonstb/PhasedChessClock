@@ -155,9 +155,15 @@ public final class ChessClockFrame extends MasterFrame implements KeyListener, W
      * panel.
      *
      * @since 1.0;
+     * @param dataLeft Data about the player on the left side.
+     * @param dataRight Data about the player on the right side.
+     * @param isLeftWhite Pass {@code true} if and only if the player on the left side plays with the
+     * white pieces.
+     * @param timeRunning Pass {@code true} if and only if the time is supposed to run already during
+     * the first move.
      */
     @Override
-    public void acceptSettings(PlayerData dataLeft, PlayerData dataRight, boolean isLeftWhite) {
+    public void acceptSettings(PlayerData dataLeft, PlayerData dataRight, boolean isLeftWhite, boolean timeRunning) {
         Optional<TimeBudgetConstraint> optLeft = makeTimeBudgetCosnstraint(dataLeft);
         Optional<TimeBudgetConstraint> optRight = makeTimeBudgetCosnstraint(dataRight);
 
@@ -167,7 +173,7 @@ public final class ChessClockFrame extends MasterFrame implements KeyListener, W
             return;
         }
 
-        timeControl.setupNewGameTiming(optLeft.get(), optRight.get(), isLeftWhite);
+        timeControl.setupNewGameTiming(optLeft.get(), optRight.get(), isLeftWhite, timeRunning);
 
         ClockPanel clockPanel = getClockPanel();
         clockPanel.setDataLeft(dataLeft.getName(), dataLeft.getCountry(), getLoc());

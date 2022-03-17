@@ -143,7 +143,7 @@ public abstract class MasterFrame extends JFrame implements ComponentListener {
 
     public abstract void goToClockPanel();
 
-    public abstract void acceptSettings(PlayerData dataLeft, PlayerData dataRight, boolean isLeftWhite);
+    public abstract void acceptSettings(PlayerData dataLeft, PlayerData dataRight, boolean isLeftWhite, boolean timeRunning);
 
     public abstract void exitApplication();
 

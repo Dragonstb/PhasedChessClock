@@ -48,7 +48,7 @@
 *      PhasedChessClock:chessClockWork
 */
 
-version = '0.9'
+version = '0.9.1'
 
 jar {
 	manifest {

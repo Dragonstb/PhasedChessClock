@@ -80,6 +80,7 @@ public abstract class Loc {
         // game settings panel
         addString("Same phases of time control", SAME_BUDGET);
         addString("Same time limits per move", SAME_MOVE_TIME_LIMIT);
+        addString("Time is running in first move", TIME_RUNS_IN_FIRST_MOVE);
 
         // TCP panel
         addString("Add above", ADD_TCP_ABOVE);
@@ -309,6 +310,8 @@ public abstract class Loc {
     public static final String SAME_INCREMENT = "same_increment";
     /** Check box: same time limit per move for all competitors. */
     public static final String SAME_MOVE_TIME_LIMIT = "same_move_time_limit";
+    /** Check box: time may run in the first move. */
+    public static final String TIME_RUNS_IN_FIRST_MOVE = "time_runs_in_first_move";
     /** label: player left. */
     public static final String PLAYER_LEFT = "player_left";
     /** label: player right. */

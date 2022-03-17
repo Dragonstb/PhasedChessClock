@@ -65,6 +65,8 @@ public final class GameSettingsPanel extends JPanel implements ActionListener {
     private final ChessCheckBox sameTCPs;
     /** Check box: Same time limit for a move? */
     private final ChessCheckBox sameMoveTimeLimit;
+    /** Check box: Shall the time run during the first move? */
+    private final ChessCheckBox timeRunsInMoveOne;
 
     /** Exchanges the sides of the players. */
     private final JButton exchangePlayersButton;
@@ -104,6 +106,10 @@ public final class GameSettingsPanel extends JPanel implements ActionListener {
         sameMoveTimeLimit = new ChessCheckBox(Loc.SAME_MOVE_TIME_LIMIT);
         sameMoveTimeLimit.addActionListener(this);
         add(sameMoveTimeLimit);
+
+        timeRunsInMoveOne = new ChessCheckBox(Loc.TIME_RUNS_IN_FIRST_MOVE);
+        timeRunsInMoveOne.addActionListener(this);
+        add(timeRunsInMoveOne);
 
         exchangePlayersButton = new JButton(Constants.EXCHANGE_PLAYERS);
         exchangePlayersButton.addActionListener(this);
@@ -150,8 +156,9 @@ public final class GameSettingsPanel extends JPanel implements ActionListener {
             return;
         }
 
-        sameTCPs.setText(loc.retrieveString(Loc.SAME_BUDGET));
-        sameMoveTimeLimit.setText(loc.retrieveString(Loc.SAME_MOVE_TIME_LIMIT));
+        sameTCPs.setText( loc.retrieveString(Loc.SAME_BUDGET) );
+        sameMoveTimeLimit.setText( loc.retrieveString(Loc.SAME_MOVE_TIME_LIMIT) );
+        timeRunsInMoveOne.setText( loc.retrieveString(Loc.TIME_RUNS_IN_FIRST_MOVE) );
 
         playerDataLeft.updateLocalization(loc);
         playerDataRight.updateLocalization(loc);
@@ -171,6 +178,7 @@ public final class GameSettingsPanel extends JPanel implements ActionListener {
         Font bold = Util.deriveBold(font);
         sameTCPs.setFont(bold);
         sameMoveTimeLimit.setFont(bold);
+        timeRunsInMoveOne.setFont(bold);
         playerDataLeft.setFonts(font);
         playerDataRight.setFonts(font);
     }
@@ -194,20 +202,24 @@ public final class GameSettingsPanel extends JPanel implements ActionListener {
 
         // general settings
         int checkBoxW = 25;
-        int sameTimeBudgetHeight, sameMoveTimeLimitH;
+        int sameTimeBudgetHeight, sameMoveTimeLimitH, timeRunsH;
         sameTimeBudgetHeight = 3 * sameTCPs.getTextHeight() / 2;
         sameMoveTimeLimitH = 3 * sameMoveTimeLimit.getTextHeight() / 2;
+        timeRunsH = 3 * timeRunsInMoveOne.getTextHeight() / 2;
         compW = Math.max(sameTCPs.getTextWidth() + sameTCPs.getIconTextGap(),
                 sameMoveTimeLimit.getTextWidth() + sameMoveTimeLimit.getIconTextGap());
+        compW = Math.max(timeRunsInMoveOne.getTextWidth() + timeRunsInMoveOne.getIconTextGap(), compW);
         compW += checkBoxW;
 
         sameTCPs.setBounds(rightAreaX, yCounter, compW, sameTimeBudgetHeight);
         yCounter += sameTimeBudgetHeight;
         sameMoveTimeLimit.setBounds(rightAreaX, yCounter, compW, sameMoveTimeLimitH);
         yCounter += sameMoveTimeLimitH;
+        timeRunsInMoveOne.setBounds(rightAreaX, yCounter, compW, timeRunsH);
+        yCounter += timeRunsH;
 
         // exchange-players button
-        compH = sameTimeBudgetHeight + sameMoveTimeLimitH;
+        compH = sameTimeBudgetHeight + sameMoveTimeLimitH + timeRunsH;
         compH = Math.min(compH, Constants.EXCHANGE_PLAYERS.getIconHeight());
         compW = Math.max(Constants.EXCHANGE_PLAYERS.getIconWidth(), (int) (.618 * playerAreaWidth));
         compX = (playerAreaWidth - compW) / 2 + EDGE; // align centre in left player area range
@@ -338,6 +350,8 @@ public final class GameSettingsPanel extends JPanel implements ActionListener {
             changeTCPSymmetryState();
         } else if (e.getSource() == sameMoveTimeLimit) {
             changeMoveTimeLimitSymmetryState();
+        } else if (e.getSource() == timeRunsInMoveOne) {
+
         }
     }
 
@@ -416,6 +430,14 @@ public final class GameSettingsPanel extends JPanel implements ActionListener {
      */
     public boolean isLeftIsWhite() {
         return leftIsWhite;
+    }
+
+    /** Tells if the time shall run during the first move.
+     * @since 1.0
+     * @return Is the clock going to tick in move one?
+     */
+    public boolean isTimeRunningInFirstMove() {
+        return timeRunsInMoveOne.isSelected();
     }
 
 }
