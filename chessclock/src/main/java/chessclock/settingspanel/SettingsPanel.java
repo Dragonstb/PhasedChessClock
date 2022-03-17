@@ -235,22 +235,25 @@ public class SettingsPanel extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         switch (e.getActionCommand()) {
-            case Action.CANCEL ->
+            case Action.CANCEL -> {
                 frame.goToClockPanel();
+            }
             case Action.OK -> {
                 Optional<PlayerData> playerDataLeft = gameSettingsPanel.getPlayerDataLeft();
                 Optional<PlayerData> playerDataRight = gameSettingsPanel.getPlayerDataRight();
                 if (playerDataLeft.isPresent() && playerDataRight.isPresent()) {
                     boolean isLeftWhite = gameSettingsPanel.isLeftIsWhite();
-                    frame.acceptSettings(playerDataLeft.get(), playerDataRight.get(), isLeftWhite);
+                    boolean timeRunning = gameSettingsPanel.isTimeRunningInFirstMove();
+                    frame.acceptSettings(playerDataLeft.get(), playerDataRight.get(), isLeftWhite, timeRunning);
                 } else {
                     String message = frame.getLoc().retrieveString(Loc.PLAYER_DATA_ERROR);
                     String title = frame.getLoc().retrieveString(Loc.EXCEPTION_TITLE);
                     JOptionPane.showMessageDialog(frame, message, title, JOptionPane.INFORMATION_MESSAGE);
                 }
             }
-            case Action.EXIT ->
+            case Action.EXIT -> {
                 frame.exitApplication();
+            }
         }
     }
 

@@ -27,7 +27,7 @@ allprojects {
 	sourceCompatibility = 17;
 	targetCompatibility = 17;
 
-    version = '0.9'
+    version = '0.9.1'
 
 	repositories {
     	jcenter()

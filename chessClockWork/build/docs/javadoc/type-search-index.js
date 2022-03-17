@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"time","l":"ClockDisplay"},{"p":"time","l":"Constants"},{"p":"time","l":"PlayerTimeDisplay"},{"p":"time","l":"TimeBudgetConstraint"},{"p":"time","l":"TimeControl"},{"p":"time","l":"TimeControlPhase"}];updateSearchResults();

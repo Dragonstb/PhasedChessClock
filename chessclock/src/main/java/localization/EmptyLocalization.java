@@ -57,6 +57,7 @@ public class EmptyLocalization extends Loc {
         // game settings panel
         addString("", SAME_BUDGET);
         addString("", SAME_MOVE_TIME_LIMIT);
+        addString("", TIME_RUNS_IN_FIRST_MOVE);
 
         // TCP panel
         addString("", ADD_TCP_ABOVE);

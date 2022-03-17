@@ -48,7 +48,7 @@ public class TestUtils {
             }
 
             @Override
-            public void acceptSettings(PlayerData dataLeft, PlayerData dataRight, boolean isLeftWhite) {
+            public void acceptSettings(PlayerData dataLeft, PlayerData dataRight, boolean isLeftWhite, boolean timeRunning) {
                 System.out.println("accepting settings");
             }
 
