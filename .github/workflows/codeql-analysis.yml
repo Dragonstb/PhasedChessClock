@@ -67,10 +67,12 @@ jobs:
     - name: Setup Gradle and clean
       uses: gradle/gradle-build-action@v2
       with:
+        gradle-version: 7.2
         arguments: clean
     - name: Setup Gradle and build
       uses: gradle/gradle-build-action@v2
       with:
+        gradle-version: 7.2
         arguments: build
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
